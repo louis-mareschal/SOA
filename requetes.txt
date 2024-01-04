@@ -1,0 +1,49 @@
+POST http://localhost:8762/user_sign_up
+{
+    "name": "Jean",
+    "surname":"Pascale",
+    "age": 34,
+    "phone_number": "0645368293",
+    "usertype": "BENEVOLE"
+}
+
+{
+    "name": "Pierre",
+    "surname":"Rock",
+    "age": 19,
+    "phone_number": "0727364522",
+    "usertype": "BENEVOLE"
+}
+
+{
+    "name": "Jean-Marie",
+    "surname":"Duboit",
+    "age": 75,
+    "phone_number": "0698784649",
+    "usertype": "UTILISATEUR"
+}
+
+{
+    "name": "Marie",
+    "surname":"Verdant",
+    "age": 26,
+    "phone_number": "0735764563",
+    "usertype": "VALIDEUR"
+}
+
+
+POST http://localhost:8763/{id_user}/add_demande
+(si c'est un benevole)
+{
+    "description": "Je peux faire vos courses si besoin"
+}
+
+(si c'est un utilisateur)
+{
+    "description": "J'ai besoin d'aide pour bouger des meubles",
+    "nb": 2
+}
+GET http://localhost:8763/{id_user}/liste_demande
+
+POST http://localhost:8765/{id_user}/inscription_demande/{id_user}
+
