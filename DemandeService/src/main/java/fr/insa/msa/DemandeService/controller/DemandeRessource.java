@@ -5,7 +5,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +25,7 @@ import fr.insa.msa.DemandeService.model.User.UserType;
 @RestController
 public class DemandeRessource {
 	
+	// Pour se connecter à la base de données
 	public Connection connect_db() {
 		try {
 	        String url = "jdbc:mysql://srv-bdens.insa-toulouse.fr:3306/projet_gei_063?serverTimezone=UTC";
@@ -45,6 +45,7 @@ public class DemandeRessource {
 	@Autowired
 	private RestTemplate restTemplate;
 	
+	// Pour ajouter une demande (en simulant une connexion préalable de l'utilisateur)
 	@PostMapping("/{id_user}/add_demande")
 	public String addDemande(@PathVariable int id_user, @RequestBody Demande demande) throws SQLException {
 		
@@ -52,23 +53,32 @@ public class DemandeRessource {
 		if (user == null) {
 			return("L'utilisateur n'éxiste pas (normalement impossible puisqu'il faudrait être connecté sur son compte pour ajouter une demande).");
 		}
-		if (user.getUsertype() == UserType.BENEVOLE) {
+		
+		
+		if (user.getUsertype() == UserType.BENEVOLE) { // Un bénévole ajoute une demande de type offre 
 			demande.setType(DemandeType.OFFRE);
 			demande.setNb_personne(1);
-		}else if (user.getUsertype() == UserType.UTILISATEUR) {
+		}else if (user.getUsertype() == UserType.UTILISATEUR) { // Un utilisateur ajoute une demande de type aide 
 			demande.setType(DemandeType.AIDE);
-			if (demande.getNb_personne() < 1) {
+			if (demande.getNb_personne() < 1) { // Comme on attend un nombre de personne pour une demande d'aide, il faut un nombre >= 1
 				return("Votre demande n'est pas valide car le nombre de personne doit être supérieur à 0.");
 			}
 		}
 		
 		Connection connexion = connect_db();
-		Statement statement = connexion.createStatement(); 
-		String query = String.format("INSERT INTO Demandes (UserId, Description, NbPersonne, Type, Etat, MotifRefus) VALUES (%d, \"%s\", %d, \"%s\", \"%s\", null);",
-				id_user, demande.getDescription(), demande.getNb_personne(), demande.getType(), demande.getEtat());
-		statement.executeUpdate(query);
+		PreparedStatement preparedStatement = connexion.prepareStatement("INSERT INTO Demandes (UserId, Description, NbPersonne, Type, Etat, MotifRefus) VALUES (?, ?, ?, ?, ?, ?)");
+		preparedStatement.setInt(1, id_user);
+		preparedStatement.setString(2, demande.getDescription());
+		preparedStatement.setInt(3, demande.getNb_personne());
+		preparedStatement.setString(4, demande.getType().name());
+		preparedStatement.setString(5, demande.getEtat().name());
+		preparedStatement.executeQuery();		
+		//Statement statement = connexion.createStatement(); 
+		//String query = String.format("INSERT INTO Demandes (UserId, Description, NbPersonne, Type, Etat, MotifRefus) VALUES (%d, \"%s\", %d, \"%s\", \"%s\", null);",
+		//		id_user, demande.getDescription(), demande.getNb_personne(), demande.getType(), demande.getEtat());
+		//statement.executeUpdate(query);
 
-        statement.close();
+		preparedStatement.close();
         connexion.close();
         
         String result = String.format("Votre demande de type %s a bien été ajouté et elle est en cours de traitement par l'équipe administrative. Récapitulatif de la demande : \n"
@@ -76,19 +86,23 @@ public class DemandeRessource {
         return result;
 	}
 	
+	// Pour récuperer une demande (avec en option l'id de son créateur à préciser, utilise pour déclarer un demande résalisée dans GestionDemande)
 	@GetMapping("/demandes/{id_demande}")
 	public Demande getDemande(@PathVariable int id_demande, @RequestParam(required=false) Integer id_user) throws SQLException {
+		
 		Connection connexion = connect_db();
-		Statement statement = connexion.createStatement(); 
+		//Statement statement = connexion.createStatement(); 
 		PreparedStatement preparedStatement;
-		if (id_user != null) {
+		
+		if (id_user != null) { 
 			preparedStatement = connexion.prepareStatement("SELECT * FROM Demandes WHERE ID = ? AND UserId = ?");
 			preparedStatement.setInt(1, id_demande);
 			preparedStatement.setInt(2, id_user);
-		}else {
+		}else { // Si on ne précise pas d'id_user, on récupère simplement la demande
 			preparedStatement = connexion.prepareStatement("SELECT * FROM Demandes WHERE ID = ?");
 			preparedStatement.setInt(1, id_demande);
 		}
+		
         ResultSet resultSet = preparedStatement.executeQuery();
         Demande demande = null;
         
@@ -102,7 +116,7 @@ public class DemandeRessource {
         }
         
         resultSet.close();
-        statement.close();
+        preparedStatement.close();
         connexion.close();
         
         return demande;

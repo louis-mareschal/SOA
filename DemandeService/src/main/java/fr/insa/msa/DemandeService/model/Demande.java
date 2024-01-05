@@ -1,14 +1,16 @@
 package fr.insa.msa.DemandeService.model;
 
 public class Demande {
+	
 	// Attributes
+	
 	private String description ;
 	private int nb_personne ;
 	private DemandeType type ;
 	private DemandeState etat ;
 	private String motif_refus ;	
 	
-	// Constructors
+	// Constructor
 	
 	public Demande(){
 		this.etat = DemandeState.EN_ATTENTE;

@@ -21,6 +21,7 @@ import fr.insa.msa.GestionDemandeService.model.User.UserType;
 @RestController
 public class GestionDemandeRessource {
 	
+	// Pour se connecter à la base de données
 	public Connection connect_db() {
 		try {
 	        String url = "jdbc:mysql://srv-bdens.insa-toulouse.fr:3306/projet_gei_063?serverTimezone=UTC";
@@ -40,6 +41,7 @@ public class GestionDemandeRessource {
 	@Autowired
 	private RestTemplate restTemplate;
 	
+	// Pour valider une demande (en simulant une connexion préalable de l'utilisateur et valable que pour les valideurs)
 	@PutMapping("/{id_user}/valider_demande/{id_demande}")
 	public String validerDemande(@PathVariable int id_user, @PathVariable int id_demande) throws SQLException {
 		
@@ -75,6 +77,7 @@ public class GestionDemandeRessource {
         return result;
 	}
 	
+	// Pour passer une demande en statut "en cours" 
 	@PutMapping("/mettre_demande_en_cours/{id_demande}")
 	public String startDemande(@PathVariable int id_demande) throws SQLException {
 		// Cette fonction n'est appelée que par le microservice InscriptionUserDemande lorsqu'une demande est complète.
@@ -93,11 +96,10 @@ public class GestionDemandeRessource {
         return result;
 	}
 	
+	// Pour refuser une demande en précisant le motif (en simulant une connexion préalable de l'utilisateur et valable que pour les valideurs)
 	@PutMapping("/{id_user}/refuser_demande/{id_demande}")
 	public String refuserDemande(@PathVariable int id_user, @PathVariable int id_demande, @RequestBody String motif_refus) throws SQLException {
-		
-		System.out.println(motif_refus);
-		
+				
 		User user = restTemplate.getForObject(String.format("http://UserService/users/%d", id_user), User.class);
 		if (user == null) {
 			return("L'utilisateur n'éxiste pas (normalement impossible puisqu'il faudrait être connecté sur son compte pour ajouter une demande).");
@@ -131,6 +133,7 @@ public class GestionDemandeRessource {
         return result;
 	}
 	
+	// Pour passer une demande en statut "résalisée" (en simulant une connexion préalable de l'utilisateur et valable que pour le créateur de la demande)
 	@PutMapping("/{id_user}/terminer_demande/{id_demande}")
 	public String endDemande(@PathVariable int id_user, @PathVariable int id_demande) throws SQLException {
 		

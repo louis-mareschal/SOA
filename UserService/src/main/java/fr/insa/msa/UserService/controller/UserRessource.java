@@ -7,9 +7,9 @@ import fr.insa.msa.UserService.model.User.UserType;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestController
 public class UserRessource {
 	
+	// Pour se connecter à la base de données
 	public Connection connect_db() {
 		try {
 	        String url = "jdbc:mysql://srv-bdens.insa-toulouse.fr:3306/projet_gei_063?serverTimezone=UTC";
@@ -36,21 +37,23 @@ public class UserRessource {
 		return null; 
 	}
 	
-	
-	
-	
+	// Pour inscrire un utilisateur 
 	@PostMapping("/user_sign_up")
 	public String addUser(@RequestBody User user) throws SQLException {
-		Connection connexion = connect_db();
-		Statement statement = connexion.createStatement(); 
-		//System.out.println(user.getName()+user.getUsertype());
-		//User user = new User(name, surname, age, phone_number, usertype);
-		String query = String.format("INSERT INTO Users (Name, Surname, Age, PhoneNumber, UserType) VALUES (\"%s\", \"%s\", %d, \"%s\", \"%s\");", user.getName(), user.getSurname(), user.getAge(), user.getPhone_number(), user.getUsertype());
-		//System.out.println(query);
-		statement.executeUpdate(query);
-
 		
-        statement.close();
+		Connection connexion = connect_db();
+		//Statement statement = connexion.createStatement(); 
+		PreparedStatement preparedStatement = connexion.prepareStatement("INSERT INTO Users (Name, Surname, Age, PhoneNumber, UserType) VALUES (?, ?, ?, ?, ?");
+		preparedStatement.setString(1, user.getName());
+		preparedStatement.setString(2, user.getSurname());
+		preparedStatement.setInt(3, user.getAge());
+		preparedStatement.setString(4, user.getPhone_number());
+		preparedStatement.setString(5, user.getUsertype().name());
+		//String query = String.format("INSERT INTO Users (Name, Surname, Age, PhoneNumber, UserType) VALUES (\"%s\", \"%s\", %d, \"%s\", \"%s\");",
+		//		user.getName(), user.getSurname(), user.getAge(), user.getPhone_number(), user.getUsertype());
+		//statement.executeUpdate(query);
+		preparedStatement.executeUpdate();
+        //statement.close();
         connexion.close();
         
         String result = String.format("Bonjour %s %s et merci pour votre inscription. Récapitulatif de vos informations : \n"
@@ -60,17 +63,20 @@ public class UserRessource {
         return result;
 	}
 	
+	// Pour récuperer un utilisateur
 	@GetMapping(value="/users/{id}")
 	public User printUser(@PathVariable int id) throws SQLException {
+		
 		Connection connexion = connect_db();
-		Statement statement = connexion.createStatement(); 
-		// Exemple de requête de lecture
-        ResultSet resultSet = statement.executeQuery(String.format("SELECT * FROM Users WHERE ID = %d", id));
-        User user = null;
+		//Statement statement = connexion.createStatement(); 
+        //ResultSet resultSet = statement.executeQuery(String.format("SELECT * FROM Users WHERE ID = %d", id));
+		PreparedStatement preparedStatement = connexion.prepareStatement("SELECT * FROM Users WHERE ID = ?");
+		preparedStatement.setInt(1, id);
+		ResultSet resultSet = preparedStatement.executeQuery();
+		User user = null;
         
         if (resultSet.next()) {
         	user = new User();
-        	//System.out.println("L'utilisateur avec l'id "+ resultSet.getString(1) + " s'appelle " + resultSet.getString(2) + " " + resultSet.getString(3)+ " "+resultSet.getString(6));           
         	user.setName(resultSet.getString("Name"));
         	user.setSurname(resultSet.getString("Surname"));
         	user.setAge(resultSet.getInt("Age"));
@@ -79,7 +85,8 @@ public class UserRessource {
         }
         
         resultSet.close();
-        statement.close();
+        preparedStatement.close();
+        //statement.close();
         connexion.close();
         
         return user;

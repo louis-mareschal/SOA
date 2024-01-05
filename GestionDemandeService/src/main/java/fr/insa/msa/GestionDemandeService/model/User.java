@@ -2,31 +2,30 @@ package fr.insa.msa.GestionDemandeService.model;
 
 
 public class User {	
-    public enum UserType {
-        BENEVOLE,
-        UTILISATEUR,
-        VALIDEUR
-    }
-   
+	 
+    // Attributes
+ 
     private String name;
     private String surname;
     private int age;
     private String phone_number;
     private UserType usertype;
     
+    // Constructor
+    
     public User() {
     }
     
-	/*public User(String _name, String _surname, int _age, String _phone_number, UserType _usertype){
-        this.name = _name;
-        this.surname = _surname;
-        this.age = _age;
-        this.phone_number = _phone_number;
-        this.usertype = _usertype;
-        this.id = User.NEXT_ID;
-    }*/
+    // Definition enum
+    
+    public enum UserType {
+        BENEVOLE,
+        UTILISATEUR,
+        VALIDEUR
+    }
   
-
+    // Getters and Setters
+    
     public String getName() {
 		return name;
 	}
