@@ -96,6 +96,8 @@ public class GestionDemandeRessource {
 	@PutMapping("/{id_user}/refuser_demande/{id_demande}")
 	public String refuserDemande(@PathVariable int id_user, @PathVariable int id_demande, @RequestBody String motif_refus) throws SQLException {
 		
+		System.out.println(motif_refus);
+		
 		User user = restTemplate.getForObject(String.format("http://UserService/users/%d", id_user), User.class);
 		if (user == null) {
 			return("L'utilisateur n'éxiste pas (normalement impossible puisqu'il faudrait être connecté sur son compte pour ajouter une demande).");

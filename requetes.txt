@@ -1,46 +1,27 @@
+La base de données a été réinitialisée pour que vous puissez simplement suivre cette série de requêtes pour tester.
+
+(Dans le cas où vous avez ajouté des utilisateurs ou des demandes et que vous voulez à présent tester les reqêtes suivantes,
+il faut d'abord réinitialiser les Id qui s'auto-incrémentent : 
+ALTER TABLE Users AUTO_INCREMENT = 1; 
+ALTER TABLE Demandes AUTO_INCREMENT = 1; )
+
+
+
+Partie I) Présentation des différentes requêtes des microservices (voir partie 2 pour la partie test)
+
+
+
 1/ UserService :
 
 
 Pour inscrire un utilisateur :
 POST http://localhost:8762/user_sign_up
 {
-    "name": "Jean",
-    "surname":"Pascale",
-    "age": 34,
-    "phone_number": "0645368293",
-    "usertype": "BENEVOLE"
-}
-
-{
-    "name": "Pierre",
-    "surname":"Rock",
-    "age": 19,
-    "phone_number": "0727364522",
-    "usertype": "BENEVOLE"
-}
-
-{
-    "name": "Claire",
-    "surname":"Fanton",
-    "age": 26,
-    "phone_number": "0784372671",
-    "usertype": "BENEVOLE"
-}
-
-{
-    "name": "Jean-Marie",
-    "surname":"Duboit",
-    "age": 75,
-    "phone_number": "0698784649",
-    "usertype": "UTILISATEUR"
-}
-
-{
-    "name": "Marie",
-    "surname":"Verdant",
-    "age": 26,
-    "phone_number": "0735764563",
-    "usertype": "VALIDEUR"
+    "name": "prenom",
+    "surname":"nom",
+    "age": [age],
+    "phone_number": "numéro_de_téléphone",
+    "usertype": "[BENEVOLE/UTILISATEUR/VALIDEUR]"
 }
 
 Pour récuperer un utilisateur :
@@ -52,19 +33,20 @@ GET http://localhost:8762/users/{id_user}
 
 Pour ajouter une demande (en simulant une connexion préalable de l'utilisateur):
 POST http://localhost:8763/{id_user}/add_demande
-(si c'est un benevole)
+(si c'est un benevole, juste une description suffit, puisqu'il propose son aide seul)
 {
-    "description": "Je peux faire vos courses si besoin"
+    "description": "Description de la demande"
 }
 
-(si c'est un utilisateur, il faut préciser le nombre de personne nécessaire)
+(si c'est un utilisateur, il faut préciser le nombre de personne qu'il souhaite pour sa demande)
 {
-    "description": "J'ai besoin d'aide pour bouger des meubles",
-    "nb": 2
+    "description": "Description de la demande",
+    "nb_personne": [nombre]
 }
 
 Pour récuperer une demande :
 GET http://localhost:8763/demandes/{id_demande}
+
 Pour récuperer une demande crée par un utilisateur : 
 GET http://localhost:8763/demandes/{id_demande}?id_user={id_user}
 
@@ -73,8 +55,7 @@ GET http://localhost:8763/demandes/{id_demande}?id_user={id_user}
 
 
 Pour récuperer la liste des demandes où l'utilisateur peut s'inscrire : (en simulant une connexion préalable de l'utilisateur)
-GET http://localhost:8765/{id_user}/liste_demande
-
+GET http://localhost:8765/{id_user}/liste_demandes
 
 Pour s'inscrire à une demande : (en simulant une connexion préalable de l'utilisateur)
 POST http://localhost:8765/{id_user}/inscription_demande/{id_demande}
@@ -91,12 +72,114 @@ PUT http://localhost:8764/mettre_demande_en_cours/{id_demande}
 
 Pour refuser une demande en précisant le motif (en simulant une connexion préalable de l'utilisateur et valable que pour les valideurs)
 PUT http://localhost:8764/{id_user}/refuser_demande/{id_demande}
-{motif_refus: " bla bla bla"}
+Votre demande a été refusée parceque ...
 
-Pour passer une demande en statut "terminé" (en simulant une connexion préalable de l'utilisateur et valable que pour l'utilisateur à l'origine de la demande)
+Pour passer une demande en statut "résalisé" (en simulant une connexion préalable de l'utilisateur et valable que pour l'utilisateur à l'origine de la demande)
 PUT http://localhost:8764/{id_user}/terminer_demande/{id_demande}
 
 
+
+Partie II) Test de toutes les requêtes
+
+
+
+1) Commençons par ajouter 3 bénévoles, 1 utilisateur et 1 valideur :
+
+POST http://localhost:8762/user_sign_up
+{
+    "name": "Jean",
+    "surname":"Pascale",
+    "age": 34,
+    "phone_number": "0645368293",
+    "usertype": "BENEVOLE"
+}
+
+POST http://localhost:8762/user_sign_up
+{
+    "name": "Pierre",
+    "surname":"Rock",
+    "age": 19,
+    "phone_number": "0727364522",
+    "usertype": "BENEVOLE"
+}
+
+POST http://localhost:8762/user_sign_up
+{
+    "name": "Claire",
+    "surname":"Fanton",
+    "age": 26,
+    "phone_number": "0784372671",
+    "usertype": "BENEVOLE"
+}
+
+POST http://localhost:8762/user_sign_up
+{
+    "name": "Jean-Marie",
+    "surname":"Duboit",
+    "age": 75,
+    "phone_number": "0698784649",
+    "usertype": "UTILISATEUR"
+}
+
+POST http://localhost:8762/user_sign_up
+{
+    "name": "Marie",
+    "surname":"Verdant",
+    "age": 26,
+    "phone_number": "0735764563",
+    "usertype": "VALIDEUR"
+}
+
+2) Récupérons ensuite les informations de Marie par exemple :
+
+GET http://localhost:8762/users/5
+
+
+3) Ajoutons 1 demande d'aide de l'utilisateur, et 2 demandes d'offres de bénévoles :
+
+Demande d'offre d'un bénévole donc pas besoin de préciser le nombre 
+POST http://localhost:8763/1/add_demande
+{
+    "description": "Je peux faire vos courses si besoin"
+}
+
+Mauvaise demande qui sera refusée par un valideur par la suite :
+POST http://localhost:8763/2/add_demande
+{
+    "description": "J'ADORE CETTE APPLICATION"
+}
+
+C'est une demande d'aide d'un utilisateur donc on précise le nombre de personne nécessaire
+POST http://localhost:8763/4/add_demande
+{
+    "description": "J'ai besoin d'aide pour bouger des meubles",
+    "nb_personne": 2
+}
+
+4) Récupérons les informations d'une demande :
+GET http://localhost:8763/demandes/1
+
+Pour récuperer une demande crée par un utilisateur (si l'utilisateur n'est pas à l'origine de la demande, ça n'affiche rien) : 
+GET http://localhost:8763/demandes/3?id_user=4
+
+5) Le valideur va maintenant refuser la demande invalide en précisant le motif :
+PUT http://localhost:8764/5/refuser_demande/2
+La description de la demande d'aide n'est pas appropriée. 
+
+6) Le valideur va maintenant accepter les deux autres demandes :
+PUT http://localhost:8764/5/valider_demande/1
+PUT http://localhost:8764/5/valider_demande/3
+
+7) Récupérons maintenant la liste des demandes possibles pour Jean par exemple :
+GET http://localhost:8765/1/liste_demandes
+
+8) Jean et Pierre décide de s'inscrire à la seule demande possible pour eux:
+POST http://localhost:8765/1/inscription_demande/3
+POST http://localhost:8765/2/inscription_demande/3
+(la demande est désormais complète donc son statut est passée à "en cours".)
+
+9) Jean-Marie étant satisfait du travail de Jean et Pierre, déclare la demande résalisée
+PUT http://localhost:8764/4/terminer_demande/3
 
 
 

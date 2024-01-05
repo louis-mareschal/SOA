@@ -86,7 +86,7 @@ public class DemandeRessource {
 			preparedStatement.setInt(1, id_demande);
 			preparedStatement.setInt(2, id_user);
 		}else {
-			preparedStatement = connexion.prepareStatement("SELECT * FROM Demandes WHERE ID = ? AND UserId = ?");
+			preparedStatement = connexion.prepareStatement("SELECT * FROM Demandes WHERE ID = ?");
 			preparedStatement.setInt(1, id_demande);
 		}
         ResultSet resultSet = preparedStatement.executeQuery();

@@ -8,6 +8,8 @@ import java.sql.Statement;
 import java.util.Vector;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,7 +68,7 @@ public class InscriptionUserDemandeRessource {
 		
 		Connection connexion = connect_db();
 		Statement statement_1 = connexion.createStatement(); 
-		String query_1 = String.format("SELECT * FROM DemandesUsers WHERE DemandeId = %d AND UserId = %d", id_demande, id_user);
+		String query_1 = String.format("SELECT * FROM DemandesUsers WHERE DemandeId = %d", id_demande);
 		ResultSet resultSet_1 = statement_1.executeQuery(query_1);
 		
 		Vector<Integer> userIds = new Vector<>();
@@ -98,7 +100,9 @@ public class InscriptionUserDemandeRessource {
         String result = String.format("Vous avez bien été inscrit à la demande n°%d. ", id_demande);
         
         if (userIds.size() == demande.getNb_personne()) {
-    		result += restTemplate.getForObject(String.format("http://GestionDemandeService/mettre_demande_en_cours/%d", id_demande), String.class);
+    		ResponseEntity<String> response = restTemplate.exchange(String.format("http://GestionDemandeService/mettre_demande_en_cours/%d", id_demande),
+    		        HttpMethod.PUT, null, String.class);
+    		result += response.getBody();
     		// Appel au micro serice de messagerie pour envoyer un message à tous les utilisateurs concernés par cette demande ainsi qu'au créateur de la demande.
     		
 		}else {
