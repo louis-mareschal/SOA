@@ -1,6 +1,6 @@
-La base de données a été réinitialisée pour que vous puissez simplement suivre cette série de requêtes pour tester.
+La base de données a été réinitialisée pour que vous puissiez simplement suivre cette série de requêtes pour tester.
 
-(Dans le cas où vous avez ajouté des utilisateurs ou des demandes et que vous voulez à présent tester les reqêtes suivantes,
+(Dans le cas où vous avez ajouté des utilisateurs ou des demandes et que vous voulez à présent tester les requêtes suivantes,
 il faut d'abord réinitialiser les Id qui s'auto-incrémentent : 
 ALTER TABLE Users AUTO_INCREMENT = 1; 
 ALTER TABLE Demandes AUTO_INCREMENT = 1; )
@@ -24,7 +24,7 @@ POST http://localhost:8762/user_sign_up
     "usertype": "[BENEVOLE/UTILISATEUR/VALIDEUR]"
 }
 
-Pour récuperer un utilisateur :
+Pour récupérer un utilisateur :
 GET http://localhost:8762/users/{id_user}
 
 
@@ -33,7 +33,7 @@ GET http://localhost:8762/users/{id_user}
 
 Pour ajouter une demande (en simulant une connexion préalable de l'utilisateur):
 POST http://localhost:8763/{id_user}/add_demande
-(si c'est un benevole, juste une description suffit, puisqu'il propose son aide seul)
+(si c'est un bénévole, juste une description suffit, puisqu'il propose son aide seul)
 {
     "description": "Description de la demande"
 }
@@ -44,17 +44,17 @@ POST http://localhost:8763/{id_user}/add_demande
     "nb_personne": [nombre]
 }
 
-Pour récuperer une demande :
+Pour récupérer une demande :
 GET http://localhost:8763/demandes/{id_demande}
 
-Pour récuperer une demande crée par un utilisateur : 
+Pour récupérer une demande crée par un utilisateur : 
 GET http://localhost:8763/demandes/{id_demande}?id_user={id_user}
 
 
 3/ InscriptionUserDemandeService :
 
 
-Pour récuperer la liste des demandes où l'utilisateur peut s'inscrire : (en simulant une connexion préalable de l'utilisateur)
+Pour récupérer la liste des demandes où l'utilisateur peut s'inscrire : (en simulant une connexion préalable de l'utilisateur)
 GET http://localhost:8765/{id_user}/liste_demandes
 
 Pour s'inscrire à une demande : (en simulant une connexion préalable de l'utilisateur)
@@ -67,14 +67,14 @@ POST http://localhost:8765/{id_user}/inscription_demande/{id_demande}
 Pour valider une demande (en simulant une connexion préalable de l'utilisateur et valable que pour les valideurs)
 PUT http://localhost:8764/{id_user}/valider_demande/{id_demande}
 
-Pour passer une demande en statut "en cours" (appelé automatiquement par le micro service InscriptionUserDemande lorsque un utilisateur s'inscrit à une demande et la rend complète)
+Pour passer une demande en statut "en cours" (appelé automatiquement par le micro service InscriptionUserDemande lorsqu'un utilisateur s'inscrit à une demande et la rend complète)
 PUT http://localhost:8764/mettre_demande_en_cours/{id_demande}
 
 Pour refuser une demande en précisant le motif (en simulant une connexion préalable de l'utilisateur et valable que pour les valideurs)
 PUT http://localhost:8764/{id_user}/refuser_demande/{id_demande}
-Votre demande a été refusée parceque ...
+Votre demande a été refusée parce que ...
 
-Pour passer une demande en statut "résalisé" (en simulant une connexion préalable de l'utilisateur et valable que pour l'utilisateur à l'origine de la demande)
+Pour passer une demande en statut "réalisé" (en simulant une connexion préalable de l'utilisateur et valable que pour l'utilisateur à l'origine de la demande)
 PUT http://localhost:8764/{id_user}/terminer_demande/{id_demande}
 
 
@@ -176,7 +176,7 @@ GET http://localhost:8765/1/liste_demandes
 8) Jean et Pierre décide de s'inscrire à la seule demande possible pour eux:
 POST http://localhost:8765/1/inscription_demande/3
 POST http://localhost:8765/2/inscription_demande/3
-(la demande est désormais complète donc son statut est passée à "en cours".)
+(la demande est désormais complète donc son statut est passé à "en cours".)
 
 9) Jean-Marie étant satisfait du travail de Jean et Pierre, déclare la demande résalisée
 PUT http://localhost:8764/4/terminer_demande/3
