@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import fr.insa.msa.InscriptionUserDemandeService.model.Demande;
+import fr.insa.msa.InscriptionUserDemandeService.model.Demande.DemandeState;
 import fr.insa.msa.InscriptionUserDemandeService.model.Demande.DemandeType;
 import fr.insa.msa.InscriptionUserDemandeService.model.User;
 import fr.insa.msa.InscriptionUserDemandeService.model.User.UserType;
@@ -59,6 +60,9 @@ public class InscriptionUserDemandeRessource {
 		}else if (user.getUsertype() == UserType.UTILISATEUR && demande.getType() != DemandeType.OFFRE) {
 			return("Vous êtes un utilisateur, vous pouvez vous inscrire que sur les demandes de type \"Offre\"");
 		}
+		if (demande.getEtat() != DemandeState.VALIDE) {
+			return("La demande n'est pas de l'état \"validée\" donc il n'est pas possible de s'inscrire.");
+		}
 		
 		Connection connexion = connect_db();
 		Statement statement_1 = connexion.createStatement(); 
@@ -86,12 +90,55 @@ public class InscriptionUserDemandeRessource {
 		Statement statement_2 = connexion.createStatement(); 
 		String query_2 = String.format("INSERT INTO DemandesUsers (DemandeId, UserId) VALUES (%d, %d);", id_demande, id_user);
 		statement_2.executeUpdate(query_2);
-
-        statement_2.close();
+		userIds.add(id_user);
+		
+		statement_2.close();
         connexion.close();
         
-        String result = String.format("Vous avez bien été inscrit à la demande n°%d, un message vous sera envoyé quand elle passera en statut \"en cours\". Récapitulatif de la demande : \n"
-        		+ "Description : %s | Nombre de personne : %d", id_demande, demande.getDescription(), demande.getNb_personne());
+        String result = String.format("Vous avez bien été inscrit à la demande n°%d. ", id_demande);
+        
+        if (userIds.size() == demande.getNb_personne()) {
+    		result += restTemplate.getForObject(String.format("http://GestionDemandeService/mettre_demande_en_cours/%d", id_demande), String.class);
+    		// Appel au micro serice de messagerie pour envoyer un message à tous les utilisateurs concernés par cette demande ainsi qu'au créateur de la demande.
+    		
+		}else {
+			result += "Un message vous sera envoyé quand elle passera en statut \"en cours\".";
+		}
+        result += String.format("\nRécapitulatif de la demande : \n Description : %s | Nombre de personne : %d",
+        		demande.getDescription(), demande.getNb_personne());
+	
+        return result;
+	}
+	
+	@GetMapping("/{id_user}/liste_demandes")
+	public String printDemandes(@PathVariable int id_user) throws SQLException {
+		
+		User user = restTemplate.getForObject(String.format("http://UserService/users/%d", id_user), User.class);
+		String query;
+		if (user == null) {
+			return("L'utilisateur n'éxiste pas (normalement impossible puisqu'il faudrait être connecté sur son compte pour ajouter une demande).");
+		}
+		if (user.getUsertype() == UserType.BENEVOLE) {
+			query = "SELECT * FROM Demandes WHERE TYPE = \"AIDE\"";
+		}else if (user.getUsertype() == UserType.UTILISATEUR) {
+			query = "SELECT * FROM Demandes WHERE TYPE = \"OFFRE\"";
+		}else { // VALIDEUR (on retourne toutes les demandes)
+			query = "SELECT * FROM Demandes"; 
+		}
+		
+		Connection connexion = connect_db();
+		Statement statement = connexion.createStatement();
+        ResultSet resultSet = statement.executeQuery(query);
+        String result = "Liste demandes : \n";
+        while (resultSet.next()) {
+        	result += String.format("Id : %d | Nombre de personne : %d | Type : \"%s\" | Etat : %s | Description : \"%s\"\n",
+        			resultSet.getInt("Id"), resultSet.getInt("NbPersonne"), resultSet.getString("Type"),
+        			resultSet.getString("Etat"), resultSet.getString("Description"));           
+        }
+        resultSet.close();
+        statement.close();
+        connexion.close();
+        
         return result;
 	}
 		

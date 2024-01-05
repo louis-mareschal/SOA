@@ -2,6 +2,7 @@ package fr.insa.msa.DemandeService.controller;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -74,11 +76,20 @@ public class DemandeRessource {
         return result;
 	}
 	
-	@GetMapping("/demandes/{id}")
-	public Demande getDemande(@PathVariable int id) throws SQLException {
+	@GetMapping("/demandes/{id_demande}")
+	public Demande getDemande(@PathVariable int id_demande, @RequestParam(required=false) Integer id_user) throws SQLException {
 		Connection connexion = connect_db();
 		Statement statement = connexion.createStatement(); 
-        ResultSet resultSet = statement.executeQuery(String.format("SELECT * FROM Demandes WHERE ID = %d", id));
+		PreparedStatement preparedStatement;
+		if (id_user != null) {
+			preparedStatement = connexion.prepareStatement("SELECT * FROM Demandes WHERE ID = ? AND UserId = ?");
+			preparedStatement.setInt(1, id_demande);
+			preparedStatement.setInt(2, id_user);
+		}else {
+			preparedStatement = connexion.prepareStatement("SELECT * FROM Demandes WHERE ID = ? AND UserId = ?");
+			preparedStatement.setInt(1, id_demande);
+		}
+        ResultSet resultSet = preparedStatement.executeQuery();
         Demande demande = null;
         
         if (resultSet.next()) {
@@ -97,37 +108,7 @@ public class DemandeRessource {
         return demande;
 	}
 	
-	@GetMapping("/{id_user}/liste_demandes")
-	public String printDemandes(@PathVariable int id_user) throws SQLException {
-		
-		User user = restTemplate.getForObject(String.format("http://UserService/users/%d", id_user), User.class);
-		String query;
-		if (user == null) {
-			return("L'utilisateur n'éxiste pas (normalement impossible puisqu'il faudrait être connecté sur son compte pour ajouter une demande).");
-		}
-		if (user.getUsertype() == UserType.BENEVOLE) {
-			query = "SELECT * FROM Demandes WHERE TYPE = \"AIDE\"";
-		}else if (user.getUsertype() == UserType.UTILISATEUR) {
-			query = "SELECT * FROM Demandes WHERE TYPE = \"OFFRE\"";
-		}else { // VALIDEUR (on retourne toutes les demandes)
-			query = "SELECT * FROM Demandes"; 
-		}
-		
-		Connection connexion = connect_db();
-		Statement statement = connexion.createStatement();
-        ResultSet resultSet = statement.executeQuery(query);
-        String result = "Liste demandes : \n";
-        while (resultSet.next()) {
-        	result += String.format("Id : %d | Nombre de personne : %d | Type : \"%s\" | Etat : %s | Description : \"%s\"\n",
-        			resultSet.getInt("Id"), resultSet.getInt("NbPersonne"), resultSet.getString("Type"),
-        			resultSet.getString("Etat"), resultSet.getString("Description"));           
-        }
-        resultSet.close();
-        statement.close();
-        connexion.close();
-        
-        return result;
-	}
+	
 
 	
 	

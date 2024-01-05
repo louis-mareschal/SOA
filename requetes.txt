@@ -1,3 +1,7 @@
+1/ UserService :
+
+
+Pour inscrire un utilisateur :
 POST http://localhost:8762/user_sign_up
 {
     "name": "Jean",
@@ -12,6 +16,14 @@ POST http://localhost:8762/user_sign_up
     "surname":"Rock",
     "age": 19,
     "phone_number": "0727364522",
+    "usertype": "BENEVOLE"
+}
+
+{
+    "name": "Claire",
+    "surname":"Fanton",
+    "age": 26,
+    "phone_number": "0784372671",
     "usertype": "BENEVOLE"
 }
 
@@ -31,19 +43,62 @@ POST http://localhost:8762/user_sign_up
     "usertype": "VALIDEUR"
 }
 
+Pour récuperer un utilisateur :
+GET http://localhost:8762/users/{id_user}
 
+
+2/ DemandeService :
+
+
+Pour ajouter une demande (en simulant une connexion préalable de l'utilisateur):
 POST http://localhost:8763/{id_user}/add_demande
 (si c'est un benevole)
 {
     "description": "Je peux faire vos courses si besoin"
 }
 
-(si c'est un utilisateur)
+(si c'est un utilisateur, il faut préciser le nombre de personne nécessaire)
 {
     "description": "J'ai besoin d'aide pour bouger des meubles",
     "nb": 2
 }
-GET http://localhost:8763/{id_user}/liste_demande
 
-POST http://localhost:8765/{id_user}/inscription_demande/{id_user}
+Pour récuperer une demande :
+GET http://localhost:8763/demandes/{id_demande}
+Pour récuperer une demande crée par un utilisateur : 
+GET http://localhost:8763/demandes/{id_demande}?id_user={id_user}
+
+
+3/ InscriptionUserDemandeService :
+
+
+Pour récuperer la liste des demandes où l'utilisateur peut s'inscrire : (en simulant une connexion préalable de l'utilisateur)
+GET http://localhost:8765/{id_user}/liste_demande
+
+
+Pour s'inscrire à une demande : (en simulant une connexion préalable de l'utilisateur)
+POST http://localhost:8765/{id_user}/inscription_demande/{id_demande}
+
+
+4/ GestionDemandeService :
+
+
+Pour valider une demande (en simulant une connexion préalable de l'utilisateur et valable que pour les valideurs)
+PUT http://localhost:8764/{id_user}/valider_demande/{id_demande}
+
+Pour passer une demande en statut "en cours" (appelé automatiquement par le micro service InscriptionUserDemande lorsque un utilisateur s'inscrit à une demande et la rend complète)
+PUT http://localhost:8764/mettre_demande_en_cours/{id_demande}
+
+Pour refuser une demande en précisant le motif (en simulant une connexion préalable de l'utilisateur et valable que pour les valideurs)
+PUT http://localhost:8764/{id_user}/refuser_demande/{id_demande}
+{motif_refus: " bla bla bla"}
+
+Pour passer une demande en statut "terminé" (en simulant une connexion préalable de l'utilisateur et valable que pour l'utilisateur à l'origine de la demande)
+PUT http://localhost:8764/{id_user}/terminer_demande/{id_demande}
+
+
+
+
+
+
 
