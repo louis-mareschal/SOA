@@ -42,18 +42,15 @@ public class UserRessource {
 	public String addUser(@RequestBody User user) throws SQLException {
 		
 		Connection connexion = connect_db();
-		//Statement statement = connexion.createStatement(); 
-		PreparedStatement preparedStatement = connexion.prepareStatement("INSERT INTO Users (Name, Surname, Age, PhoneNumber, UserType) VALUES (?, ?, ?, ?, ?");
+		PreparedStatement preparedStatement = connexion.prepareStatement("INSERT INTO Users (Name, Surname, Age, PhoneNumber, UserType) VALUES (?, ?, ?, ?, ?)");
 		preparedStatement.setString(1, user.getName());
 		preparedStatement.setString(2, user.getSurname());
 		preparedStatement.setInt(3, user.getAge());
 		preparedStatement.setString(4, user.getPhone_number());
 		preparedStatement.setString(5, user.getUsertype().name());
-		//String query = String.format("INSERT INTO Users (Name, Surname, Age, PhoneNumber, UserType) VALUES (\"%s\", \"%s\", %d, \"%s\", \"%s\");",
-		//		user.getName(), user.getSurname(), user.getAge(), user.getPhone_number(), user.getUsertype());
-		//statement.executeUpdate(query);
 		preparedStatement.executeUpdate();
-        //statement.close();
+		
+		preparedStatement.close();
         connexion.close();
         
         String result = String.format("Bonjour %s %s et merci pour votre inscription. Récapitulatif de vos informations : \n"
@@ -68,8 +65,6 @@ public class UserRessource {
 	public User printUser(@PathVariable int id) throws SQLException {
 		
 		Connection connexion = connect_db();
-		//Statement statement = connexion.createStatement(); 
-        //ResultSet resultSet = statement.executeQuery(String.format("SELECT * FROM Users WHERE ID = %d", id));
 		PreparedStatement preparedStatement = connexion.prepareStatement("SELECT * FROM Users WHERE ID = ?");
 		preparedStatement.setInt(1, id);
 		ResultSet resultSet = preparedStatement.executeQuery();
@@ -86,7 +81,6 @@ public class UserRessource {
         
         resultSet.close();
         preparedStatement.close();
-        //statement.close();
         connexion.close();
         
         return user;

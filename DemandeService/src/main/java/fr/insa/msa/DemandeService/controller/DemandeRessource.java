@@ -72,11 +72,8 @@ public class DemandeRessource {
 		preparedStatement.setInt(3, demande.getNb_personne());
 		preparedStatement.setString(4, demande.getType().name());
 		preparedStatement.setString(5, demande.getEtat().name());
-		preparedStatement.executeQuery();		
-		//Statement statement = connexion.createStatement(); 
-		//String query = String.format("INSERT INTO Demandes (UserId, Description, NbPersonne, Type, Etat, MotifRefus) VALUES (%d, \"%s\", %d, \"%s\", \"%s\", null);",
-		//		id_user, demande.getDescription(), demande.getNb_personne(), demande.getType(), demande.getEtat());
-		//statement.executeUpdate(query);
+		preparedStatement.setString(6, null);
+		preparedStatement.executeUpdate();
 
 		preparedStatement.close();
         connexion.close();
@@ -91,7 +88,6 @@ public class DemandeRessource {
 	public Demande getDemande(@PathVariable int id_demande, @RequestParam(required=false) Integer id_user) throws SQLException {
 		
 		Connection connexion = connect_db();
-		//Statement statement = connexion.createStatement(); 
 		PreparedStatement preparedStatement;
 		
 		if (id_user != null) { 

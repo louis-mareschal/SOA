@@ -75,9 +75,6 @@ public class InscriptionUserDemandeRessource {
 		PreparedStatement preparedStatement_1 = connexion.prepareStatement("SELECT * FROM DemandesUsers WHERE DemandeId = ?");
 		preparedStatement_1.setInt(1, id_demande);
 		ResultSet resultSet_1  = preparedStatement_1.executeQuery();
-		// Statement statement_1 = connexion.createStatement(); 
-		// String query_1 = String.format("SELECT * FROM DemandesUsers WHERE DemandeId = %d", id_demande);
-		// ResultSet resultSet_1 = statement_1.executeQuery(query_1);
 		
 		Vector<Integer> userIds = new Vector<>();
 		
@@ -97,13 +94,11 @@ public class InscriptionUserDemandeRessource {
 			return("Il n'y a plus de place pour cette demande.");
 		}
 		
-		//Statement statement_2 = connexion.createStatement(); 
-		//String query_2 = String.format("INSERT INTO DemandesUsers (DemandeId, UserId) VALUES (%d, %d);", id_demande, id_user);
-		//statement_2.executeUpdate(query_2);
+		
 		PreparedStatement preparedStatement = connexion.prepareStatement("INSERT INTO DemandesUsers (DemandeId, UserId) VALUES (?, ?)");
 		preparedStatement.setInt(1, id_demande);
 		preparedStatement.setInt(2, id_user);
-		preparedStatement.executeQuery();
+		preparedStatement.executeUpdate();
 		
 		//statement_2.close();
 		preparedStatement.close();
@@ -137,7 +132,7 @@ public class InscriptionUserDemandeRessource {
 		if (user == null) {
 			return("L'utilisateur n'éxiste pas (normalement impossible puisqu'il faudrait être connecté sur son compte pour ajouter une demande).");
 		}
-		// j'espère que ça va aller sinon faut tout changer
+
 		Connection connexion = connect_db();
 		PreparedStatement preparedStatement;
 		if (user.getUsertype() == UserType.BENEVOLE) {
@@ -152,8 +147,7 @@ public class InscriptionUserDemandeRessource {
 			preparedStatement = connexion.prepareStatement("SELECT * FROM Demandes"); 
 		}
 		
-		//Statement statement = connexion.createStatement();
-        //ResultSet resultSet = statement.executeQuery(query);
+		
 		ResultSet resultSet = preparedStatement.executeQuery();
 		
         String result = "Liste demandes : \n";
@@ -164,7 +158,6 @@ public class InscriptionUserDemandeRessource {
         }
         
         resultSet.close();
-        //statement.close();
         preparedStatement.close();
         connexion.close();
         
